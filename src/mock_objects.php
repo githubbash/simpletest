@@ -1768,8 +1768,8 @@ class MockGenerator
             $signature = $this->reflection->getSignature($method);
             
             $code .= '    ' . $signature . " {\n";
-            if (preg_match('~^\s*static ~', $signature)) {
-                $code .= "        return self:\$__this__->mock->invoke(\"$method\", func_get_args());\n";
+            if (preg_match('~\bstatic\b~', $signature)) {
+                $code .= "        return self::\$__this__->mock->invoke(\"$method\", func_get_args());\n";
             }else{
                 $code .= "        return \$this->mock->invoke(\"$method\", func_get_args());\n";
             }
