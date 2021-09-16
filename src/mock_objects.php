@@ -1437,7 +1437,9 @@ class MockGenerator
         }
 
         $code = 'class '.$this->mock_class.' extends '.$this->mock_base.' '.$implements." {\n";
+        $code .= "    public static \$__this__;\n";
         $code .= "    function __construct() {\n";
+        $code .= "        self::\$__this__ = \$this; \n";
         $code .= "        parent::__construct();\n";
         $code .= "    }\n";
         $code .= $this->createCodeForConstructor();
@@ -1468,9 +1470,11 @@ class MockGenerator
         }
         $code .= 'class '.$this->mock_class.' extends '.$this->class." {\n";
         $code .= "    public \$mock;\n";
+        $code .= "    static \$__this__;\n";
         $code .= $this->addMethodList(array_merge($methods, $this->reflection->getMethods()));
         $code .= "\n";
         $code .= "    function __construct() {\n";
+        $code .= "        self::\$__this__ = \$this;\n";
         $code .= '        $this->mock = new \\'.$this->mock_base."();\n";
         $code .= "        \$this->mock->disableExpectationNameChecks();\n";
         $code .= "    }\n";
@@ -1760,8 +1764,15 @@ class MockGenerator
             if ($this->isConstructorOrDeconstructor($method)) {
                 continue;
             }
-            $code .= '    '.$this->reflection->getSignature($method)." {\n";
-            $code .= "        return \$this->mock->invoke(\"$method\", func_get_args());\n";
+
+            $signature = $this->reflection->getSignature($method);
+            
+            $code .= '    ' . $signature . " {\n";
+            if (preg_match('~^\s*static ~', $signature)) {
+                $code .= "        return self:\$__this__->mock->invoke(\"$method\", func_get_args());\n";
+            }else{
+                $code .= "        return \$this->mock->invoke(\"$method\", func_get_args());\n";
+            }
             $code .= "    }\n";
         }
 
